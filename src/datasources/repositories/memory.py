@@ -1,31 +1,30 @@
 import typing
 import uuid
 
-from hexagonal.data_sources import models as data_models
-from hexagonal import models as hexa_models
+from datasources import models
 
 
 AttributesT = typing.TypeVar("AttributesT")
 
 
 class MemoryDataSource(typing.Generic[AttributesT]):
-    def __init__(self, dataset: typing.Sequence[AttributesT]):
+    def __init__(self, dataset: typing.Sequence[models.Resource[AttributesT]]):
         self.dataset = list(dataset)
 
     async def iterate(
             self,
-            sort: typing.Optional[typing.Sequence[data_models.SortOption]] = None,
+            sort: typing.Optional[typing.Sequence[models.SortOption]] = None,
             offset: typing.Optional[int] = None,
             limit: typing.Optional[int] = None,
-    ) -> typing.AsyncIterator[hexa_models.Resource[AttributesT]]:
+    ) -> typing.AsyncIterator[models.Resource[AttributesT]]:
         dataset = self.dataset
         if sort is not None:
             dataset = sorted(dataset, key=get_sort_key(sort))
         for entry in dataset:
             yield entry
 
-    async def insert(self, attributes: AttributesT) -> hexa_models.Resource[AttributesT]:
-        entry = hexa_models.Resource(
+    async def insert(self, attributes: AttributesT) -> models.Resource[AttributesT]:
+        entry: models.Resource[AttributesT] = models.Resource(
             id=str(uuid.uuid4()),
             version=1,
             attributes=attributes,
