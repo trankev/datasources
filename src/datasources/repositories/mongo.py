@@ -33,11 +33,14 @@ class MongoDataSource(typing.Generic[AttributesT]):
     async def iterate(
             self,
             *,
+            filters: typing.Optional[typing.Sequence[typing.Tuple[str, typing.Any]]] = None,
             sort: typing.Optional[typing.Sequence[models.SortOption]] = None,
             offset: typing.Optional[int] = None,
             limit: typing.Optional[int] = None,
     ) -> typing.AsyncIterator[models.Resource[AttributesT]]:
         search: dict = {}
+        if filters:
+            search = {field: value for field, value in filters}
         query = self.collection.find(search)
         if sort is not None:
             query = query.sort([
