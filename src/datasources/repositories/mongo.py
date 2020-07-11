@@ -1,4 +1,6 @@
+import datetime
 import typing
+import uuid
 
 from motor import motor_asyncio
 import pydantic
@@ -45,37 +47,31 @@ class MongoDataSource(typing.Generic[AttributesT]):
         if limit is not None:
             query = query.limit(limit)
         with self.tracer.start_active_span(
-                operation_name=f"mongo:iterate",
+                operation_name="mongo:iterate",
                 finish_on_close=True,
                 child_of=self.tracer.scope_manager.active.span,
         ):
             async for document in query:
-                item_id = str(document.pop("_id"))
-                version = document.pop("version")
-                attributes = self.attributes_type(**document)
-                item = models.Resource(
-                    id=item_id,
-                    version=version,
-                    attributes=attributes,
-                )
+                document.pop("_id")
+                item: models.Resource[AttributesT] = models.Resource(**document)
                 yield item
 
     async def insert(self, attributes: AttributesT) -> models.Resource[AttributesT]:
-        first_version = 1
-        document = attributes.dict()
-        document["version"] = first_version
+        now = datetime.datetime.now(tz=datetime.timezone.utc)
+        document: models.Resource[AttributesT] = models.Resource(
+            id=uuid.uuid4(),
+            created=now,
+            last_updated=now,
+            version=1,
+            attributes=attributes,
+        )
         with self.tracer.start_active_span(
-                operation_name=f"mongo:insert",
+                operation_name="mongo:insert",
                 finish_on_close=True,
                 child_of=self.tracer.scope_manager.active.span,
         ):
-            response = await self.collection.insert_one(document)
-        result = models.Resource(
-            id=str(response.inserted_id),
-            version=first_version,
-            attributes=attributes,
-        )
-        return result
+            await self.collection.insert_one(document.dict())
+        return document
 
 
 def sort_direction(direction: models.SortDirection) -> int:

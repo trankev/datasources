@@ -1,6 +1,8 @@
 import dataclasses
+import datetime
 import enum
 import typing
+import uuid
 
 import pydantic
 import pydantic.generics
@@ -10,8 +12,10 @@ AttributesT = typing.TypeVar("AttributesT")
 
 
 class Resource(pydantic.generics.GenericModel, typing.Generic[AttributesT]):
-    id: str
+    id: uuid.UUID
     version: typing.Optional[int]
+    created: datetime.datetime
+    last_updated: datetime.datetime
     attributes: AttributesT
 
 
