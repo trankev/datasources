@@ -2,6 +2,7 @@ import datetime
 import typing
 import uuid
 
+import bson.codec_options
 from motor import motor_asyncio
 import pydantic
 import pymongo
@@ -24,7 +25,8 @@ class MongoDataSource(typing.Generic[AttributesT]):
     ) -> None:
         client = motor_asyncio.AsyncIOMotorClient(host)
         database = client[database_name]
-        self.collection = database[collection_name]
+        options = bson.codec_options.CodecOptions(tz_aware=True)
+        self.collection = database.get_collection(collection_name, codec_options=options)
         self.attributes_type = attributes_type
         self.tracer = tracer
 
