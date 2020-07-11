@@ -1,5 +1,4 @@
 import typing
-import uuid
 
 from datasources import models
 
@@ -24,11 +23,7 @@ class MemoryDataSource(typing.Generic[AttributesT]):
             yield entry
 
     async def insert(self, attributes: AttributesT) -> models.Resource[AttributesT]:
-        entry: models.Resource[AttributesT] = models.Resource(
-            id=str(uuid.uuid4()),
-            version=1,
-            attributes=attributes,
-        )
+        entry: models.Resource[AttributesT] = models.Resource(attributes=attributes)
         self.dataset.append(entry)
         return entry
 
