@@ -78,6 +78,25 @@ class MongoDataSource(typing.Generic[AttributesT]):
         await self.collection.insert_one(document.dict())
         return document
 
+    async def update(self, item_id: uuid.UUID, version: int, attributes: pydantic.BaseModel):
+        query = {
+            "id": item_id,
+            "version": version,
+        }
+        updates = {
+            "$set": {
+                "attributes": attributes.dict(),
+            },
+            "$currentDate": {
+                "last_updated": True,
+            },
+            "$inc": {
+                "version": 1,
+            },
+        }
+        # TODO: handle version mismatch, item not found
+        await self.collection.update_one(query, updates)
+
 
 def sort_direction(direction: models.SortDirection) -> int:
     if direction is models.SortDirection.ascending:
