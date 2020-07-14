@@ -51,15 +51,15 @@ class MongoDataSource(typing.Generic[AttributesT]):
             query = query.skip(offset)
         if limit is not None:
             query = query.limit(limit)
-        with self.tracer.start_active_span(
-                operation_name="mongo:iterate",
-                finish_on_close=True,
-                child_of=self.tracer.scope_manager.active.span,
-        ):
-            async for document in query:
-                document.pop("_id")
-                item: models.Resource[AttributesT] = models.Resource(**document)
-                yield item
+        # with self.tracer.start_active_span(
+        #         operation_name="mongo:iterate",
+        #         finish_on_close=True,
+        #         child_of=self.tracer.scope_manager.active.span,
+        # ):
+        async for document in query:
+            document.pop("_id")
+            item: models.Resource[AttributesT] = models.Resource(**document)
+            yield item
 
     async def insert(self, attributes: AttributesT) -> models.Resource[AttributesT]:
         now = datetime.datetime.now(tz=datetime.timezone.utc)
@@ -70,12 +70,12 @@ class MongoDataSource(typing.Generic[AttributesT]):
             version=1,
             attributes=attributes,
         )
-        with self.tracer.start_active_span(
-                operation_name="mongo:insert",
-                finish_on_close=True,
-                child_of=self.tracer.scope_manager.active.span,
-        ):
-            await self.collection.insert_one(document.dict())
+        # with self.tracer.start_active_span(
+        #         operation_name="mongo:insert",
+        #         finish_on_close=True,
+        #         child_of=self.tracer.scope_manager.active.span,
+        # ):
+        await self.collection.insert_one(document.dict())
         return document
 
 
