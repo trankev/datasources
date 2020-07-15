@@ -16,7 +16,6 @@ AttributesT = typing.TypeVar("AttributesT", bound=pydantic.BaseModel)
 class MongoDataSource(typing.Generic[AttributesT]):
     def __init__(
             self,
-            tracer,
             *,
             host: str,
             database_name: str,
@@ -28,7 +27,6 @@ class MongoDataSource(typing.Generic[AttributesT]):
         options = bson.codec_options.CodecOptions(tz_aware=True)
         self.collection = database.get_collection(collection_name, codec_options=options)
         self.attributes_type = attributes_type
-        self.tracer = tracer
 
     async def iterate(
             self,
@@ -51,11 +49,6 @@ class MongoDataSource(typing.Generic[AttributesT]):
             query = query.skip(offset)
         if limit is not None:
             query = query.limit(limit)
-        # with self.tracer.start_active_span(
-        #         operation_name="mongo:iterate",
-        #         finish_on_close=True,
-        #         child_of=self.tracer.scope_manager.active.span,
-        # ):
         async for document in query:
             document.pop("_id")
             item: models.Resource[AttributesT] = models.Resource(**document)
@@ -70,15 +63,15 @@ class MongoDataSource(typing.Generic[AttributesT]):
             version=1,
             attributes=attributes,
         )
-        # with self.tracer.start_active_span(
-        #         operation_name="mongo:insert",
-        #         finish_on_close=True,
-        #         child_of=self.tracer.scope_manager.active.span,
-        # ):
         await self.collection.insert_one(document.dict())
         return document
 
-    async def update(self, item_id: uuid.UUID, version: int, attributes: pydantic.BaseModel):
+    async def update(
+        self,
+        item_id: uuid.UUID,
+        version: int,
+        attributes: pydantic.BaseModel,
+    ) -> None:
         query = {
             "id": item_id,
             "version": version,
