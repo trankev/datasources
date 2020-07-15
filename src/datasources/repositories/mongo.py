@@ -9,18 +9,18 @@ import pymongo
 
 from datasources import models
 
-
 AttributesT = typing.TypeVar("AttributesT", bound=pydantic.BaseModel)
 
 
 class MongoDataSource(typing.Generic[AttributesT]):
+
     def __init__(
-            self,
-            *,
-            host: str,
-            database_name: str,
-            collection_name: str,
-            attributes_type: typing.Type[AttributesT],
+        self,
+        *,
+        host: str,
+        database_name: str,
+        collection_name: str,
+        attributes_type: typing.Type[AttributesT],
     ) -> None:
         client = motor_asyncio.AsyncIOMotorClient(host)
         database = client[database_name]
@@ -29,22 +29,24 @@ class MongoDataSource(typing.Generic[AttributesT]):
         self.attributes_type = attributes_type
 
     async def iterate(
-            self,
-            *,
-            filters: typing.Optional[typing.Sequence[typing.Tuple[str, typing.Any]]] = None,
-            sort: typing.Optional[typing.Sequence[models.SortOption]] = None,
-            offset: typing.Optional[int] = None,
-            limit: typing.Optional[int] = None,
+        self,
+        *,
+        filters: typing.Optional[typing.Sequence[typing.Tuple[str, typing.Any]]] = None,
+        sort: typing.Optional[typing.Sequence[models.SortOption]] = None,
+        offset: typing.Optional[int] = None,
+        limit: typing.Optional[int] = None,
     ) -> typing.AsyncIterator[models.Resource[AttributesT]]:
         search: dict = {}
         if filters:
             search = {field: value for field, value in filters}
         query = self.collection.find(search)
         if sort is not None:
-            query = query.sort([
-                (sort_option.field, sort_direction(sort_option.direction))
-                for sort_option in sort
-            ])
+            query = query.sort(
+                [
+                    (sort_option.field, sort_direction(sort_option.direction))
+                    for sort_option in sort
+                ],
+            )
         if offset is not None:
             query = query.skip(offset)
         if limit is not None:
