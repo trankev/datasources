@@ -28,8 +28,11 @@ class MemoryDataSource(typing.Generic[AttributesT]):
         return entry
 
 
-def get_sort_key(sort_options):
-    def wrapped(entry):
+def get_sort_key(
+    sort_options: typing.Sequence[models.SortOption],
+) -> typing.Callable[[models.Resource[typing.Any]],
+                     typing.Tuple[typing.Any, ...]]:
+    def wrapped(entry: models.Resource[typing.Any]) -> typing.Tuple[typing.Any, ...]:
         return tuple(
             getattr(entry.attributes, sort_option.field)
             for sort_option in sort_options
