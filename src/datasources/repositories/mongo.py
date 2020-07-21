@@ -73,7 +73,7 @@ class MongoDataSource(typing.Generic[AttributesT]):
         item_id: uuid.UUID,
         version: int,
         attributes: pydantic.BaseModel,
-    ) -> None:
+    ) -> bool:
         query = {
             "id": item_id,
             "version": version,
@@ -89,8 +89,9 @@ class MongoDataSource(typing.Generic[AttributesT]):
                 "version": 1,
             },
         }
-        # TODO: handle version mismatch, item not found
-        await self.collection.update_one(query, updates)
+        # TODO: return/log error if any
+        update_result = await self.collection.update_one(query, updates)
+        return update_result.matched_count == 1
 
 
 def sort_direction(direction: models.SortDirection) -> int:
