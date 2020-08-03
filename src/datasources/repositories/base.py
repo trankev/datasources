@@ -14,7 +14,7 @@ class DataSource(abc.ABC, typing.Generic[AttributesT]):
     async def iterate(
         self,
         *,
-        filters: typing.Optional[typing.Sequence[typing.Tuple[str, typing.Any]]] = None,
+        filters: typing.Optional[typing.Sequence[models.FilterOption]] = None,
         sort: typing.Optional[typing.Sequence[models.SortOption]] = None,
         offset: typing.Optional[int] = None,
         limit: typing.Optional[int] = None,

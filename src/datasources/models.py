@@ -30,4 +30,15 @@ class SortDirection(enum.Enum):
 @dataclasses.dataclass
 class SortOption:
     field: str
-    direction: SortDirection
+    direction: SortDirection = SortDirection.ascending
+
+
+class FilterComparison(enum.Enum):
+    equality = enum.auto()
+
+
+@dataclasses.dataclass
+class FilterOption:
+    field: str
+    value: typing.Any
+    comparison: FilterComparison = FilterComparison.equality
