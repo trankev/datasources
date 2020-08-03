@@ -7,7 +7,7 @@ import uuid
 import pydantic
 import pydantic.generics
 
-AttributesT = typing.TypeVar("AttributesT")
+AttributesT = typing.TypeVar("AttributesT", bound=pydantic.BaseModel)
 
 
 class Resource(pydantic.generics.GenericModel, typing.Generic[AttributesT]):
