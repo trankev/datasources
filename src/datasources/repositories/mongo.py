@@ -39,12 +39,11 @@ class MongoDataSource(base.DataSource, typing.Generic[AttributesT]):
     ) -> typing.AsyncIterator[models.Resource[AttributesT]]:
         search: dict = {}
         if filters:
-            search = {f"attributes.{option.field}": option.value for option in filters}
+            search = {option.field: option.value for option in filters}
         query = self.collection.find(search)
         if sort is not None:
             sort_fields = [
-                (f"attributes.{sort_option.field}", sort_direction(sort_option.direction))
-                for sort_option in sort
+                (sort_option.field, sort_direction(sort_option.direction)) for sort_option in sort
             ]
             print(sort_fields)
             query = query.sort(sort_fields)

@@ -42,7 +42,7 @@ async def test_single_field_sorting(
     expected_values: typing.List[int],
 ) -> None:
     sort = [
-        models.SortOption(field="int_field", direction=direction),
+        models.SortOption(field="attributes.int_field", direction=direction),
     ]
     entries = [entry async for entry in populated_datasource.iterate(sort=sort)]
     assert len(entries) == 2
@@ -53,8 +53,8 @@ async def test_single_field_sorting(
 @pytest.mark.asyncio
 async def test_double_field_sorting(populated_datasource: base.DataSource) -> None:
     sort = [
-        models.SortOption(field="bool_field", direction=models.SortDirection.ascending),
-        models.SortOption(field="str_field", direction=models.SortDirection.descending),
+        models.SortOption(field="attributes.bool_field", direction=models.SortDirection.ascending),
+        models.SortOption(field="attributes.str_field", direction=models.SortDirection.descending),
     ]
     entries = [entry async for entry in populated_datasource.iterate(sort=sort)]
     assert len(entries) == 2
@@ -65,7 +65,7 @@ async def test_double_field_sorting(populated_datasource: base.DataSource) -> No
 @pytest.mark.asyncio
 async def test_limit(populated_datasource: base.DataSource) -> None:
     sort = [
-        models.SortOption(field="str_field", direction=models.SortDirection.ascending),
+        models.SortOption(field="attributes.str_field", direction=models.SortDirection.ascending),
     ]
     entries = [entry async for entry in populated_datasource.iterate(limit=1, sort=sort)]
     assert len(entries) == 1
@@ -75,7 +75,7 @@ async def test_limit(populated_datasource: base.DataSource) -> None:
 @pytest.mark.asyncio
 async def test_offset(populated_datasource: base.DataSource) -> None:
     sort = [
-        models.SortOption(field="str_field", direction=models.SortDirection.ascending),
+        models.SortOption(field="attributes.str_field", direction=models.SortDirection.ascending),
     ]
     entries = [entry async for entry in populated_datasource.iterate(offset=1, sort=sort)]
     assert len(entries) == 1
@@ -86,7 +86,7 @@ async def test_offset(populated_datasource: base.DataSource) -> None:
 async def test_filter_no_results(populated_datasource: base.DataSource) -> None:
     filters = [
         models.FilterOption(
-            field="int_field",
+            field="attributes.int_field",
             value=65,
         ),
     ]
@@ -98,7 +98,7 @@ async def test_filter_no_results(populated_datasource: base.DataSource) -> None:
 async def test_filter_one_entry(populated_datasource: base.DataSource) -> None:
     filters = [
         models.FilterOption(
-            field="int_field",
+            field="attributes.int_field",
             value=12,
         ),
     ]

@@ -50,13 +50,21 @@ def filter_dataset(
         if filter_option.comparison == models.FilterComparison.equality:
             result = (
                 entry for entry in result
-                if getattr(entry.attributes, filter_option.field) == filter_option.value
+                if recursive_get(entry, filter_option.field) == filter_option.value
             )
         else:
             message = "Unsupported filter comparison for memory datasource: {:r}"
             message = message.format(filter_option.comparison)
             raise ValueError(message)
     return list(result)
+
+
+def recursive_get(obj: pydantic.BaseModel, field: str) -> typing.Any:
+    attributes = field.split(".")
+    value = obj
+    for attribute in attributes:
+        value = getattr(value, attribute)
+    return value
 
 
 def sort_dataset(
@@ -66,7 +74,7 @@ def sort_dataset(
     for sort_option in reversed(sort):
         dataset = sorted(
             dataset,
-            key=lambda x: getattr(x.attributes, sort_option.field),
+            key=lambda x: recursive_get(x, sort_option.field),
             reverse=sort_option.direction == models.SortDirection.descending,
         )
     return dataset
