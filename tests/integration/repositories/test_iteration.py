@@ -1,25 +1,18 @@
 import typing
 
-import pydantic
 import pytest
 
 from datasources import models
 from datasources.repositories import base
-
-
-class SampleModel(pydantic.BaseModel):
-    str_field: str
-    int_field: int
-    bool_field: bool
-
+from tests.integration.repositories import models as test_models
 
 DATASET = [
-    SampleModel(str_field="a", int_field=12, bool_field=False),
-    SampleModel(str_field="b", int_field=7, bool_field=False),
+    test_models.SampleModel(str_field="a", int_field=12, bool_field=False),
+    test_models.SampleModel(str_field="b", int_field=7, bool_field=False),
 ]
 
 
-@pytest.fixture(name="populated_datasource")
+@pytest.fixture(name="populated_datasource", scope="module")
 async def populated_datasource_fixture(
     datasource: base.DataSource,
 ) -> typing.AsyncIterator[base.DataSource]:
@@ -65,8 +58,8 @@ async def test_double_field_sorting(populated_datasource: base.DataSource) -> No
     ]
     entries = [entry async for entry in populated_datasource.iterate(sort=sort)]
     assert len(entries) == 2
-    int_values = [entry.attributes.str_field for entry in entries]
-    assert int_values == ["b", "a"]
+    str_values = [entry.attributes.str_field for entry in entries]
+    assert str_values == ["b", "a"]
 
 
 @pytest.mark.asyncio

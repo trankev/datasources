@@ -8,11 +8,12 @@ import pydantic
 import pymongo
 
 from datasources import models
+from datasources.repositories import base
 
 AttributesT = typing.TypeVar("AttributesT", bound=pydantic.BaseModel)
 
 
-class MongoDataSource(typing.Generic[AttributesT]):
+class MongoDataSource(base.DataSource, typing.Generic[AttributesT]):
 
     def __init__(
         self,
@@ -31,29 +32,29 @@ class MongoDataSource(typing.Generic[AttributesT]):
     async def iterate(
         self,
         *,
-        filters: typing.Optional[typing.Sequence[typing.Tuple[str, typing.Any]]] = None,
+        filters: typing.Optional[typing.Sequence[models.FilterOption]] = None,
         sort: typing.Optional[typing.Sequence[models.SortOption]] = None,
         offset: typing.Optional[int] = None,
         limit: typing.Optional[int] = None,
     ) -> typing.AsyncIterator[models.Resource[AttributesT]]:
         search: dict = {}
         if filters:
-            search = {field: value for field, value in filters}
+            search = {f"attributes.{option.field}": option.value for option in filters}
         query = self.collection.find(search)
         if sort is not None:
-            query = query.sort(
-                [
-                    (sort_option.field, sort_direction(sort_option.direction))
-                    for sort_option in sort
-                ],
-            )
+            sort_fields = [
+                (f"attributes.{sort_option.field}", sort_direction(sort_option.direction))
+                for sort_option in sort
+            ]
+            print(sort_fields)
+            query = query.sort(sort_fields)
         if offset is not None:
             query = query.skip(offset)
         if limit is not None:
             query = query.limit(limit)
         async for document in query:
             document.pop("_id")
-            item: models.Resource[AttributesT] = models.Resource(**document)
+            item = models.Resource[self.attributes_type](**document)  # type: ignore
             yield item
 
     async def insert(self, attributes: AttributesT) -> models.Resource[AttributesT]:
@@ -92,6 +93,9 @@ class MongoDataSource(typing.Generic[AttributesT]):
         # TODO: return/log error if any
         update_result = await self.collection.update_one(query, updates)
         return update_result.matched_count == 1
+
+    async def clear(self) -> None:
+        await self.collection.delete_many({})
 
 
 def sort_direction(direction: models.SortDirection) -> int:
