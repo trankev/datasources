@@ -21,3 +21,9 @@ bson = { version = "*", extras = ["mongo"] }
 [build-system]
 requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"
+
+[tool.pytest.ini_options]
+addopts = "--cov datasources --cov tests --cov-report=term-missing:skip-covered --cov-branch -vv"
+testpaths = [
+    "tests",
+]
